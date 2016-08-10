@@ -1,4 +1,4 @@
-### www.joomla-security.de # Version: 1.5v7 (2011-08-27)                  ###
+### www.joomla-security.de # Version: 2.5v1 (2012-05-19)                  ###
 #############################################################################
 ### This file is free software: you can redistribute it and/or modify     ###
 ### it under the terms of the GNU General Public License as published by  ###
@@ -18,6 +18,7 @@
 ##### ADDITIONAL SECURITY FUNCTIONS - START #####
 #################################################
 ##### Based upon: http://perishablepress.com/press/2009/03/16/the-perishable-press-4g-blacklist/
+##### and: http://docs.joomla.org/Htaccess_examples
 
 ### ESSENTIALS
 RewriteEngine On
@@ -25,104 +26,42 @@ ServerSignature Off
 Options All -Indexes
 Options +FollowSymLinks
 
-### FILTER REQUEST METHODS
-RewriteCond %{REQUEST_METHOD} ^(TRACE|DELETE|TRACK) [NC]
-RewriteRule ^(.*)$ - [R=404,L]
+########## Begin - RewriteBase
+## Uncomment following line if your webserver's URL
+## is not directly related to physical file paths.
+## Update Your Joomla! Directory (just / for root)
+# RewriteBase /
+########## End - RewriteBase
+
+### FILTER REQUEST METHODS AND OTHER STUFF
+RewriteCond %{REQUEST_METHOD} ^(TRACE|DELETE|TRACK) [NC,OR]
+RewriteCond %{THE_REQUEST} (\\r|\\n|%0A|%0D) [NC,OR]
+RewriteCond %{HTTP_REFERER} (<|>|’|%0A|%0D|%27|%3C|%3E|%00) [NC,OR]
+RewriteCond %{HTTP_COOKIE} (<|>|’|%0A|%0D|%27|%3C|%3E|%00) [NC,OR]
+RewriteCond %{REQUEST_URI} ^/(,|;|:|<|>|”>|”<|/|\\\.\.\\).{0,9999} [NC,OR]
 
 ### BLOCK SOME USER AGENTS
-RewriteCond %{HTTP_USER_AGENT} ^Java|HTTrack|Baiduspider|CligooRobot|TrackBack|Jakarta|libwww-perl|Wget
-RewriteRule ^(.*)$ - [R=404,L]
+RewriteCond %{HTTP_USER_AGENT} ^$ [OR]
+RewriteCond %{HTTP_USER_AGENT} ^(java|curl|wget) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} (winhttp|HTTrack|clshttp|archiver|loader|email|harvest|extract|grab|miner) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} (libwww-perl|curl|wget|python|nikto|scan) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} (<|>|’|%0A|%0D|%27|%3C|%3E|%00) [NC,OR]
 
 ### QUERY STRING EXPLOITS
-RewriteCond %{QUERY_STRING} \.\.\/ [NC,OR]
 RewriteCond %{QUERY_STRING} boot\.ini [NC,OR]
 RewriteCond %{QUERY_STRING} tag\= [NC,OR]
 RewriteCond %{QUERY_STRING} ftp\: [NC,OR]
 RewriteCond %{QUERY_STRING} http\:  [NC,OR]
 RewriteCond %{QUERY_STRING} https\: [NC,OR]
-RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
 RewriteCond %{QUERY_STRING} (\<|%3C).*iframe.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
 RewriteCond %{QUERY_STRING} ^.*(%0|127\.0).* [NC,OR]
 RewriteCond %{QUERY_STRING} ^.*(\(|\)|<|>|'|"|\?|\*|%%|&%%|&"|").* [NC,OR]
 RewriteCond %{QUERY_STRING} ^.*(globals|encode|localhost|loopback).* [NC,OR]
-RewriteCond %{QUERY_STRING} ^.*(execute|exec|sp_executesql|request|insert|union|declare|drop|delete|create|alter|order|char|cast|convert|meta|script|truncate).* [NC]
+RewriteCond %{QUERY_STRING} (;|<|>|’|”|\)|%0A|%0D|%22|%27|%3C|%3E|%00).*(/\*|union|select|insert|cast|set|declare|drop|md5|benchmark) [NC,OR]
+RewriteCond %{QUERY_STRING} \.\./\.\. [OR]
+RewriteCond %{QUERY_STRING} (<|>|’|%0A|%0D|%27|%3C|%3E|%00) [NC]
 RewriteRule ^(.*)$ - [R=404,L]
-
-### CHARACTER STRINGS
-<IfModule mod_alias.c>
- ### BASIC CHARACTERS
- RedirectMatch 404 \:
- RedirectMatch 404 \@
- RedirectMatch 404 \[
- RedirectMatch 404 \]
- RedirectMatch 404 \^
- RedirectMatch 404 \`
- RedirectMatch 404 \{
- RedirectMatch 404 \}
- RedirectMatch 404 \~
- RedirectMatch 404 \"
- RedirectMatch 404 \$
- RedirectMatch 404 \<
- RedirectMatch 404 \>
- RedirectMatch 404 \|
- RedirectMatch 404 \.\.
- RedirectMatch 404 \/\/
- RedirectMatch 404 \%0
- RedirectMatch 404 \%22
- RedirectMatch 404 \%27
- RedirectMatch 404 \%28
- RedirectMatch 404 \%29
- RedirectMatch 404 \%3C
- RedirectMatch 404 \%3E
- RedirectMatch 404 \%3F
- RedirectMatch 404 \%5B
- RedirectMatch 404 \%5C
- RedirectMatch 404 \%5D
- RedirectMatch 404 \%7B
- RedirectMatch 404 \%7C
- RedirectMatch 404 \%7D
- 
- ### COMMON PATTERNS
- RedirectMatch 404 \_vpi
- RedirectMatch 404 \.inc
- RedirectMatch 404 xAou6
- RedirectMatch 404 db\_name
- RedirectMatch 404 select\(
- RedirectMatch 404 convert\(
- RedirectMatch 404 \/query\/
- RedirectMatch 404 ImpEvData
- RedirectMatch 404 \.XMLHTTP
- RedirectMatch 404 proxydeny
- RedirectMatch 404 function\.
- RedirectMatch 404 remoteFile
- RedirectMatch 404 servername
- RedirectMatch 404 \&rptmode\=
- RedirectMatch 404 sys\_cpanel
- RedirectMatch 404 db\_connect
- RedirectMatch 404 doeditconfig
- RedirectMatch 404 check\_proxy
- RedirectMatch 404 system\_user
- RedirectMatch 404 \/\(null\)\/
- RedirectMatch 404 clientrequest
- RedirectMatch 404 option\_value
- RedirectMatch 404 ref\.outcontrol
- 
- ### SPECIFIC EXPLOITS
- RedirectMatch 404 errors\.
- RedirectMatch 404 include\.
- RedirectMatch 404 display\.
- RedirectMatch 404 password\.
- RedirectMatch 404 maincore\.
- RedirectMatch 404 authorize\.
- RedirectMatch 404 macromates\.
- RedirectMatch 404 head\_auth\.
- RedirectMatch 404 submit\_links\.
- RedirectMatch 404 change\_action\.
- RedirectMatch 404 com\_facileforms\/
- RedirectMatch 404 admin\_db\_utilities\.
- RedirectMatch 404 admin\.webring\.docs\.
- RedirectMatch 404 Table\/Latest\/index\.
-</IfModule>
 
 ###############################################
 ##### ADDITIONAL SECURITY FUNCTIONS - END #####
@@ -137,10 +76,10 @@ RewriteCond %{QUERY_STRING} tp=(.*)
 RewriteRule ^(.*)$ index.php [F,L]
 ########## End - Rule to block "?tp=1"
 
-########## Begin - Rule to block "?template"
-RewriteCond %{QUERY_STRING} template=(.*)
+########## Begin - Rule to block "?templateStyle"
+RewriteCond %{QUERY_STRING} templateStyle=(.*)
 RewriteRule ^(.*)$ index.php [F,L]
-########## End - Rule to block "?template"
+########## End - Rule to block "?templateStyle"
 
 ########## Begin - Rewrite rules to block out some common exploits
 ## If you experience problems on your site block out the operations listed below
@@ -153,31 +92,37 @@ RewriteRule ^(.*)$ index.php [F,L]
 #Satisfy all
 #</Files>
 ## End of deny access to extension xml files
-# Block out any script trying to set a mosConfig value through the URL
-RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,21}(=|\%3D) [OR]
-# Block out any script trying to base64_encode data within the URL
+# Block out any script trying to base64_encode data within the URL.
 RewriteCond %{QUERY_STRING} base64_encode[^(]*\([^)]*\) [OR]
-# Block out any script that includes a <script> tag in URL
+# Block out any script that includes a <script> tag in URL.
 RewriteCond %{QUERY_STRING} (<|%3C)([^s]*s)+cript.*(>|%3E) [NC,OR]
-# Block out any script trying to set a PHP GLOBALS variable via URL
+# Block out any script trying to set a PHP GLOBALS variable via URL.
 RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
-# Block out any script trying to modify a _REQUEST variable via URL
+# Block out any script trying to modify a _REQUEST variable via URL.
 RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
 # Return 403 Forbidden header and show the content of the root homepage
 RewriteRule .* index.php [F]
 #
 ########## End - Rewrite rules to block out some common exploits
 
-########## Begin - Deny access to some files
-<Files .htaccess>
- Order Deny,Allow
- Deny from all
-</Files>
+########## Begin - File injection protection by SigSiu.net
+RewriteCond %{REQUEST_METHOD} GET
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=http:// [OR]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=(\.\.//?)+ [OR]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=/([a-z0-9_.]//?)+ [NC]
+RewriteRule ^(.*)$ - [R=404,L]
+########## End - File injection protection
 
-<Files configuration.php>
- Order Deny,Allow
- Deny from all
-</Files>
+########## Begin - Disallow PHP Easter Eggs by Nicholas K. Dionysopoulos
+## Disallow PHP Easter Eggs (can be used in fingerprinting attacks to determine
+## your PHP version). See http://www.0php.com/php_easter_egg.php and
+## http://osvdb.org/12184 for more information
+RewriteCond %{QUERY_STRING} \=PHP[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} [NC]
+RewriteRule ^(.*)$ - [R=404,L]
+########## End - Disallow PHP Easter Eggs
+
+########## Begin - Deny access to some files
+RewriteRule ^(htaccess\.txt|configuration\.php(-dist)?|php\.ini)$ - [R=404,L]
 ########## End - Deny access to some files
 
 #######################################################
@@ -188,7 +133,7 @@ RewriteRule .* index.php [F]
 ##### ADDITIONAL CACHE FUNCTIONS - START #####
 ##############################################
 
-### Compress the output with gzip
+### Compress the output with Gzip
 #AddOutputFilterByType deflate text/html text/plain text/css text/javascript application/javascript application/x-javascript application/rss+xml
 
 ### Set the default character set
@@ -213,12 +158,6 @@ RewriteRule .* index.php [F]
 ##### ADDITIONAL CACHE FUNCTIONS - END #####
 ############################################
 
-#  Uncomment following line if your webserver's URL
-#  is not directly related to physical file paths.
-#  Update Your Joomla! Directory (just / for root)
-
-# RewriteBase /
-
 #############################################
 ##### CUSTOM HTACCESS FUNCTIONS - START #####
 #############################################
@@ -239,9 +178,10 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 # If the requested path and file is not /index.php and the request
 # has not already been internally rewritten to the index.php script
 RewriteCond %{REQUEST_URI} !^/index\.php
-# and the request is for root, or for an extensionless URL, or the
+# and the request is for something within the component folder,
+# or for the site root, or for an extensionless URL, or the
 # requested URL ends with one of the listed extensions
-RewriteCond %{REQUEST_URI} (/[^.]*|\.(php|html?|feed|pdf|raw))$ [NC]
+RewriteCond %{REQUEST_URI} /component/|(/[^.]*|\.(php|html?|feed|pdf|vcf|raw))$ [NC]
 # and the requested path and file doesn't directly match a physical file
 RewriteCond %{REQUEST_FILENAME} !-f
 # and the requested path and file doesn't directly match a physical folder

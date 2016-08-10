@@ -1,1 +1,1 @@
-# htaccess
+# Improved Joomla! Security Htaccess

@@ -1,0 +1,7 @@
+Die htaccess.txt einfach lokal entpacken.
+Danach via FTP in den sog. „Document Root“ von Joomla! auf den Webserver kopieren.
+Anschließend die htaccess.txt in .htaccess umbennenen.
+Das Testen nicht vergessen!
+
+Jan Erik Zassenhaus (Joomla!-Security)
+www.joomla-security.de

@@ -1,0 +1,261 @@
+### www.joomla-security.de # Version: 1.5v7 (2011-08-27)                  ###
+#############################################################################
+### This file is free software: you can redistribute it and/or modify     ###
+### it under the terms of the GNU General Public License as published by  ###
+### the Free Software Foundation, either version 3 of the License, or     ###
+### any later version.                                                    ###
+###                                                                       ###
+### This file is distributed in the hope that it will be useful,          ###
+### but WITHOUT ANY WARRANTY; without even the implied warranty of        ###
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          ###
+### GNU General Public License for more details.                          ###
+###                                                                       ###
+### You should have received a copy of the GNU General Public License     ###
+### along with this file. If not, see <http://www.gnu.org/licenses/>.     ###
+#############################################################################
+
+#################################################
+##### ADDITIONAL SECURITY FUNCTIONS - START #####
+#################################################
+##### Based upon: http://perishablepress.com/press/2009/03/16/the-perishable-press-4g-blacklist/
+
+### ESSENTIALS
+RewriteEngine On
+ServerSignature Off
+Options All -Indexes
+Options +FollowSymLinks
+
+### FILTER REQUEST METHODS
+RewriteCond %{REQUEST_METHOD} ^(TRACE|DELETE|TRACK) [NC]
+RewriteRule ^(.*)$ - [R=404,L]
+
+### BLOCK SOME USER AGENTS
+RewriteCond %{HTTP_USER_AGENT} ^Java|HTTrack|Baiduspider|CligooRobot|TrackBack|Jakarta|libwww-perl|Wget
+RewriteRule ^(.*)$ - [R=404,L]
+
+### QUERY STRING EXPLOITS
+RewriteCond %{QUERY_STRING} \.\.\/ [NC,OR]
+RewriteCond %{QUERY_STRING} boot\.ini [NC,OR]
+RewriteCond %{QUERY_STRING} tag\= [NC,OR]
+RewriteCond %{QUERY_STRING} ftp\: [NC,OR]
+RewriteCond %{QUERY_STRING} http\:  [NC,OR]
+RewriteCond %{QUERY_STRING} https\: [NC,OR]
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (\<|%3C).*iframe.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} ^.*(%0|127\.0).* [NC,OR]
+RewriteCond %{QUERY_STRING} ^.*(\(|\)|<|>|'|"|\?|\*|%%|&%%|&"|").* [NC,OR]
+RewriteCond %{QUERY_STRING} ^.*(globals|encode|localhost|loopback).* [NC,OR]
+RewriteCond %{QUERY_STRING} ^.*(execute|exec|sp_executesql|request|insert|union|declare|drop|delete|create|alter|order|char|cast|convert|meta|script|truncate).* [NC]
+RewriteRule ^(.*)$ - [R=404,L]
+
+### CHARACTER STRINGS
+<IfModule mod_alias.c>
+ ### BASIC CHARACTERS
+ RedirectMatch 404 \:
+ RedirectMatch 404 \@
+ RedirectMatch 404 \[
+ RedirectMatch 404 \]
+ RedirectMatch 404 \^
+ RedirectMatch 404 \`
+ RedirectMatch 404 \{
+ RedirectMatch 404 \}
+ RedirectMatch 404 \~
+ RedirectMatch 404 \"
+ RedirectMatch 404 \$
+ RedirectMatch 404 \<
+ RedirectMatch 404 \>
+ RedirectMatch 404 \|
+ RedirectMatch 404 \.\.
+ RedirectMatch 404 \/\/
+ RedirectMatch 404 \%0
+ RedirectMatch 404 \%22
+ RedirectMatch 404 \%27
+ RedirectMatch 404 \%28
+ RedirectMatch 404 \%29
+ RedirectMatch 404 \%3C
+ RedirectMatch 404 \%3E
+ RedirectMatch 404 \%3F
+ RedirectMatch 404 \%5B
+ RedirectMatch 404 \%5C
+ RedirectMatch 404 \%5D
+ RedirectMatch 404 \%7B
+ RedirectMatch 404 \%7C
+ RedirectMatch 404 \%7D
+ 
+ ### COMMON PATTERNS
+ RedirectMatch 404 \_vpi
+ RedirectMatch 404 \.inc
+ RedirectMatch 404 xAou6
+ RedirectMatch 404 db\_name
+ RedirectMatch 404 select\(
+ RedirectMatch 404 convert\(
+ RedirectMatch 404 \/query\/
+ RedirectMatch 404 ImpEvData
+ RedirectMatch 404 \.XMLHTTP
+ RedirectMatch 404 proxydeny
+ RedirectMatch 404 function\.
+ RedirectMatch 404 remoteFile
+ RedirectMatch 404 servername
+ RedirectMatch 404 \&rptmode\=
+ RedirectMatch 404 sys\_cpanel
+ RedirectMatch 404 db\_connect
+ RedirectMatch 404 doeditconfig
+ RedirectMatch 404 check\_proxy
+ RedirectMatch 404 system\_user
+ RedirectMatch 404 \/\(null\)\/
+ RedirectMatch 404 clientrequest
+ RedirectMatch 404 option\_value
+ RedirectMatch 404 ref\.outcontrol
+ 
+ ### SPECIFIC EXPLOITS
+ RedirectMatch 404 errors\.
+ RedirectMatch 404 include\.
+ RedirectMatch 404 display\.
+ RedirectMatch 404 password\.
+ RedirectMatch 404 maincore\.
+ RedirectMatch 404 authorize\.
+ RedirectMatch 404 macromates\.
+ RedirectMatch 404 head\_auth\.
+ RedirectMatch 404 submit\_links\.
+ RedirectMatch 404 change\_action\.
+ RedirectMatch 404 com\_facileforms\/
+ RedirectMatch 404 admin\_db\_utilities\.
+ RedirectMatch 404 admin\.webring\.docs\.
+ RedirectMatch 404 Table\/Latest\/index\.
+</IfModule>
+
+###############################################
+##### ADDITIONAL SECURITY FUNCTIONS - END #####
+###############################################
+
+#########################################################
+##### ADDITIONAL JOOMLA! SECURITY FUNCTIONS - START #####
+#########################################################
+
+########## Begin - Rule to block "?tp=1"
+RewriteCond %{QUERY_STRING} tp=(.*)
+RewriteRule ^(.*)$ index.php [F,L]
+########## End - Rule to block "?tp=1"
+
+########## Begin - Rule to block "?template"
+RewriteCond %{QUERY_STRING} template=(.*)
+RewriteRule ^(.*)$ index.php [F,L]
+########## End - Rule to block "?template"
+
+########## Begin - Rewrite rules to block out some common exploits
+## If you experience problems on your site block out the operations listed below
+## This attempts to block the most common type of exploit `attempts` to Joomla!
+#
+## Deny access to extension xml files (uncomment out to activate)
+#<Files ~ "\.xml$">
+#Order allow,deny
+#Deny from all
+#Satisfy all
+#</Files>
+## End of deny access to extension xml files
+# Block out any script trying to set a mosConfig value through the URL
+RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,21}(=|\%3D) [OR]
+# Block out any script trying to base64_encode data within the URL
+RewriteCond %{QUERY_STRING} base64_encode[^(]*\([^)]*\) [OR]
+# Block out any script that includes a <script> tag in URL
+RewriteCond %{QUERY_STRING} (<|%3C)([^s]*s)+cript.*(>|%3E) [NC,OR]
+# Block out any script trying to set a PHP GLOBALS variable via URL
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+# Block out any script trying to modify a _REQUEST variable via URL
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+# Return 403 Forbidden header and show the content of the root homepage
+RewriteRule .* index.php [F]
+#
+########## End - Rewrite rules to block out some common exploits
+
+########## Begin - Deny access to some files
+<Files .htaccess>
+ Order Deny,Allow
+ Deny from all
+</Files>
+
+<Files configuration.php>
+ Order Deny,Allow
+ Deny from all
+</Files>
+########## End - Deny access to some files
+
+#######################################################
+##### ADDITIONAL JOOMLA! SECURITY FUNCTIONS - End #####
+#######################################################
+
+##############################################
+##### ADDITIONAL CACHE FUNCTIONS - START #####
+##############################################
+
+### Compress the output with gzip
+#AddOutputFilterByType deflate text/html text/plain text/css text/javascript application/javascript application/x-javascript application/rss+xml
+
+### Set the default character set
+#AddDefaultCharset utf-8
+
+<IfModule mod_headers.c>
+  <FilesMatch "\\.(ico|pdf|flv|jpg|jpeg|png|gif|swf)$">
+    Header set Cache-Control "max-age=33135480, public"
+  </FilesMatch>
+  <FilesMatch "\\.(css|js)$">
+    Header set Cache-Control "max-age=604800, public"
+  </FilesMatch>
+  <FilesMatch "\\.(xml|txt)$">
+    Header set Cache-Control "max-age=216000, public, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\\.(html|htm|php)$">
+    Header set Cache-Control "max-age=33135480, public"
+  </FilesMatch>
+</IfModule>
+
+############################################
+##### ADDITIONAL CACHE FUNCTIONS - END #####
+############################################
+
+#  Uncomment following line if your webserver's URL
+#  is not directly related to physical file paths.
+#  Update Your Joomla! Directory (just / for root)
+
+# RewriteBase /
+
+#############################################
+##### CUSTOM HTACCESS FUNCTIONS - START #####
+#############################################
+
+### Redirect from "domain.com" to "www.domain.com" (uncomment out to activate)
+#RewriteCond %{HTTP_HOST} ^([0-9a-z-]+)\.de$ [NC]
+#RewriteRule ^(.*)$ http://www.%1.de/$1 [R=301,L]
+
+###########################################
+##### CUSTOM HTACCESS FUNCTIONS - END #####
+###########################################
+
+
+########## Begin - Joomla! core SEF Section
+#
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+#
+# If the requested path and file is not /index.php and the request
+# has not already been internally rewritten to the index.php script
+RewriteCond %{REQUEST_URI} !^/index\.php
+# and the request is for root, or for an extensionless URL, or the
+# requested URL ends with one of the listed extensions
+RewriteCond %{REQUEST_URI} (/[^.]*|\.(php|html?|feed|pdf|raw))$ [NC]
+# and the requested path and file doesn't directly match a physical file
+RewriteCond %{REQUEST_FILENAME} !-f
+# and the requested path and file doesn't directly match a physical folder
+RewriteCond %{REQUEST_FILENAME} !-d
+# internally rewrite the request to the index.php script
+RewriteRule .* index.php [L]
+#
+########## End - Joomla! core SEF Section
+
+########## Begin - Error documents
+#
+ErrorDocument 401 "404 Not Found!
+ErrorDocument 403 "404 Not Found!
+ErrorDocument 404 "404 Not Found!
+ErrorDocument 500 "Internal Server Error!
+#
+########## End - Error documents
